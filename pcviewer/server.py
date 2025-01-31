@@ -3,9 +3,10 @@ import websockets
 import json
 import numpy as np
 import torch
+from typing import Union, Optional
 
 class PointCloudServer:
-    def __init__(self, point_clouds, colors=None, show_axes=True, show_rings=True):
+    def __init__(self, point_clouds: Union[np.ndarray, torch.Tensor], colors: Optional[Union[np.ndarray, torch.Tensor]] = None, show_axes: bool = True, show_rings: bool = True):
         """初始化点云服务器
         Args:
             point_clouds: 点云数据序列，shape为(n_frames, n_points, 3)

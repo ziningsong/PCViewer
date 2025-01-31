@@ -4,8 +4,10 @@ from .server import PointCloudServer
 import websockets
 import threading
 import numpy as np
+import torch
+from typing import Union, Optional
 
-async def run_websocket_server(point_clouds, colors=None, show_axes=True, show_rings=True):
+async def run_websocket_server(point_clouds: Union[np.ndarray, torch.Tensor], colors: Optional[Union[np.ndarray, torch.Tensor]] = None, show_axes: bool = True, show_rings: bool = True):
     """运行WebSocket服务器"""
     server = PointCloudServer(point_clouds, colors, show_axes, show_rings)
     async with websockets.serve(server.handle_connection, "0.0.0.0", 8765):
@@ -16,7 +18,7 @@ def run_http_server_thread():
     """在独立线程中运行HTTP服务器"""
     run_server()
 
-def start_servers(point_clouds, colors=None, show_axes=True, show_rings=True):
+def start_servers(point_clouds: Union[np.ndarray, torch.Tensor], colors: Optional[Union[np.ndarray, torch.Tensor]] = None, show_axes: bool = True, show_rings: bool = True):
     """启动服务器
     Args:
         point_clouds: 点云数据序列，shape为(n_frames, n_points, 3)

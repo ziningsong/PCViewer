@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="pcviewer",
-    version="0.1.1",
+    version="0.1.2",
     author="laowoniu",
     author_email="songzn@shanghaitech.edu.cn",
     description="A simple tool for visualizing point cloud sequences",
