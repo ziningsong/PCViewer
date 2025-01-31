@@ -2,7 +2,7 @@ import numpy as np
 from pcviewer import start_servers
 
 
-# 示例：创建一些测试数据
+# 创建一些测试数据
 n_frames = 30
 n_points = 1000
 

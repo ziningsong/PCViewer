@@ -1,6 +1,6 @@
 import asyncio
-from http_server import run_server
-from server import PointCloudServer
+from .http_server import run_server
+from .server import PointCloudServer
 import websockets
 import threading
 import numpy as np

@@ -64,4 +64,4 @@ start_servers(np.array(point_clouds), np.array(colors))
 
 ## 运行效果
 
-![PCViewer Demo](assets/demo.gif)
+![PCViewer Demo](demo.gif)
