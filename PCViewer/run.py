@@ -17,12 +17,12 @@ def run_http_server_thread():
     run_server()
 
 def start_servers(point_clouds, colors=None, show_axes=True, show_rings=True):
-    """启动两个服务器
+    """启动服务器
     Args:
         point_clouds: 点云数据序列，shape为(n_frames, n_points, 3)
         colors: 点云颜色序列，shape为(n_frames, n_points, 3)
         show_axes: 是否显示坐标轴
-        show_rings: 是否显示环
+        show_rings: 是否显示辅助环
     """
     # 启动HTTP服务器（在新线程中）
     http_thread = threading.Thread(target=run_http_server_thread)
