@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Point Cloud Viewer</title>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;,">
+    <!-- 使用 CDN -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/TrackballControls.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/FlyControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #controls {
+            position: fixed;
+            right: 0;
+            top: 0;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            min-width: 200px;
+            min-height: 100px;
+            max-width: 80vw;  /* 最大宽度为视窗宽度的80% */
+            max-height: 80vh; /* 最大高度为视窗高度的80% */
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            resize: both;
+            overflow: auto;
+        }
+
+        #controlHeader {
+            cursor: move;
+            padding: 5px;
+            margin: -10px -10px 10px -10px;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #toggleButton {
+            cursor: pointer;
+            padding: 2px 8px;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+        }
+
+        #controls::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 20px;
+            height: 20px;
+            cursor: sw-resize;
+            background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.1) 50%);
+            border-bottom-left-radius: 5px;
+            display: block;  /* 默认显示 */
+        }
+
+        #controls.collapsed {
+            width: 32px !important;  /* 确保是正方形 */
+            height: 32px !important;
+            min-width: 32px;
+            min-height: 32px;
+            resize: none;
+            padding: 0;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 0;
+            border-bottom-left-radius: 5px;
+            overflow: hidden;
+        }
+
+        #controls.collapsed::after {
+            display: none;  /* 折叠时隐藏resize指示器 */
+        }
+
+        #controls.collapsed #controlHeader {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+
+        #toggleButton {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            padding: 0;
+        }
+
+        #controls.collapsed #toggleButton {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 保存折叠前的尺寸 */
+        #controls:not(.collapsed):not(.hidden) {
+            width: var(--expanded-width, 300px);
+            height: var(--expanded-height, auto);
+        }
+
+        #controls.collapsed #controlContent,
+        #controls.collapsed #controlHeader span {
+            display: none;
+        }
+
+        #controls.collapsed #controlHeader {
+            margin: 0;
+            padding: 5px;
+            background: rgba(255,255,255,0.8);
+            border-bottom-left-radius: 5px;
+        }
+
+        .restore-button {
+            position: fixed;
+            right: 0;
+            top: 0;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.8);
+            border-bottom-left-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #controls.hidden {
+            display: none;
+        }
+
+        #controls.hidden + .restore-button {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div id="controlHeader">
+            <span>Point Cloud Controls</span>
+            <button id="toggleButton">−</button>
+        </div>
+        <div id="controlContent">
+            <div>Frame: <span id="frameNumber">0</span></div>
+            <input type="range" id="frameSlider" min="0" value="0">
+            <button id="playButton">Play</button>
+            <div>FPS: <span id="fpsValue">30</span></div>
+            <input type="range" id="fpsSlider" min="1" max="60" value="30">
+            <div class="control-mode">
+                <div>Control Mode:</div>
+                <button id="orbitMode" class="active">Orbit</button>
+                <button id="trackballMode">Trackball</button>
+                <button id="flyMode">Fly</button>
+                <div class="hint">
+                    Orbit: Left-drag rotate, Right-drag pan, Scroll zoom<br>
+                    Trackball: Free rotation<br>
+                    Fly: WASD move, R/F up/down, Mouse look
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="restore-button">Show Controls</button>
+    <script src="viewer.js"></script>
+    <script>
+        // 控制面板拖动功能
+        const controls = document.getElementById('controls');
+        const header = document.getElementById('controlHeader');
+        const toggleBtn = document.getElementById('toggleButton');
+        const restoreBtn = document.querySelector('.restore-button');
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        header.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        function dragStart(e) {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+            if (e.target === header) {
+                isDragging = true;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+                controls.style.transform = 
+                    `translate(${currentX}px, ${currentY}px)`;
+                constrainPosition();
+            }
+        }
+
+        function dragEnd() {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        // 限制控制面板始终保持右上角对齐
+        const constrainPosition = () => {
+            const rect = controls.getBoundingClientRect();
+            if (rect.right < window.innerWidth) {
+                xOffset += window.innerWidth - rect.right;
+            }
+            if (rect.top < 0) {
+                yOffset -= rect.top;
+            }
+            controls.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+        };
+
+        // 折叠/展开功能
+        let expandedWidth, expandedHeight;
+        
+        toggleBtn.addEventListener('click', () => {
+            if (!controls.classList.contains('collapsed')) {
+                // 保存展开状态的尺寸
+                expandedWidth = controls.offsetWidth;
+                expandedHeight = controls.offsetHeight;
+                // 确保最小尺寸
+                expandedWidth = Math.max(expandedWidth, 200);
+                expandedHeight = Math.max(expandedHeight, 100);
+                controls.style.setProperty('--expanded-width', expandedWidth + 'px');
+                controls.style.setProperty('--expanded-height', expandedHeight + 'px');
+            }
+            
+            controls.classList.toggle('collapsed');
+            toggleBtn.textContent = controls.classList.contains('collapsed') ? '□' : '−';
+        });
+
+        // 隐藏/显示功能
+        let controlsPosition = { right: '10px', top: '10px' };
+        
+        toggleBtn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (!controls.classList.contains('collapsed')) {
+                // 保存展开状态的尺寸
+                expandedWidth = controls.offsetWidth;
+                expandedHeight = controls.offsetHeight;
+                controls.style.setProperty('--expanded-width', expandedWidth + 'px');
+                controls.style.setProperty('--expanded-height', expandedHeight + 'px');
+            }
+            controls.classList.add('hidden');
+        });
+
+        restoreBtn.addEventListener('click', () => {
+            controls.classList.remove('hidden');
+            controls.classList.remove('collapsed');
+            toggleBtn.textContent = '−';
+        });
+
+        // 窗口大小改变时保持位置约束
+        window.addEventListener('resize', constrainPosition);
+    </script>
+</body>
+</html>
