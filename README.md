@@ -2,6 +2,20 @@
 
 PCViewer是一个简单易用的点云数据可视化工具，支持动态点云序列的实时渲染和交互式查看。
 
+## 安装
+
+```bash
+pip install pcviewer
+```
+
+支持Python 3.7及以上版本。如果你使用conda环境，建议先创建新的环境：
+
+```bash
+conda create -n pcviewer python=3.9
+conda activate pcviewer
+pip install pcviewer
+```
+
 ## 使用示例
 只需将需要可视化的点云数据传入`start_servers`函数即可启动可视化服务器，然后在浏览器中访问`http://localhost:8080`来交互式查看点云数据。
 
@@ -43,8 +57,8 @@ start_servers(np.array(point_clouds), np.array(colors))
 
 `start_servers(point_clouds, colors=None, show_axes=True, show_rings=True)`
 
-- `point_clouds`: numpy数组，形状为(n_frames, n_points, 3)，表示点云序列数据
-- `colors`: numpy数组，形状为(n_frames, n_points, 3)，表示点云颜色，可选参数
+- `point_clouds`: numpy数组或torch张量，形状为(n_frames, n_points, 3)，表示点云序列数据
+- `colors`: numpy数组，形状为(n_frames, n_points, 3)，表示点云颜色，可选参数。各颜色通道值范围为[0, 1]，使用RGB格式
 - `show_axes`: 布尔值，是否显示坐标轴，默认为True
 - `show_rings`: 布尔值，是否显示辅助环，默认为True
 

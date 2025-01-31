@@ -1,5 +1,5 @@
 import numpy as np
-from PCViewer import start_servers
+from pcviewer import start_servers
 
 
 # 示例：创建一些测试数据

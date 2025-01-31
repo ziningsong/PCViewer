@@ -16,22 +16,23 @@ setup(
     version="0.1.0",
     author="laowoniu",
     author_email="songzn@shanghaitech.edu.cn",
-    description="A 3D point cloud visualization tool with WebSocket streaming",
+    description="A simple tool for visualizing point cloud sequences",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/pcviewer",
+    url="https://github.com/ziningsong/PCViewer",
     packages=find_packages(),
     package_data={
         'pcviewer': static_files,
     },
     install_requires=[
-        line.strip()
-        for line in open("requirements.txt").readlines()
+        "numpy>=1.19.0",
+        "websockets>=10.0",
+        "aiohttp>=3.8.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
 )
